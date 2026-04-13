@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Rabb Consulting · ERP</title>
+<style>
+:root{--bg:#fff;--bg2:#f5f5f3;--bg3:#efefec;--text:#1a1a18;--text2:#5f5e5a;--text3:#888780;--border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.2);--ok:#0f6e56;--ok-bg:#e1f5ee;--warn:#854f0b;--warn-bg:#faeeda;--err:#a32d2d;--err-bg:#fcebeb;--info:#185fa5;--info-bg:#e6f1fb;--pu:#7F77DD;--te:#1D9E75;--am:#EF9F27;--pi:#D4537E;--r:8px;--rl:12px}
+@media(prefers-color-scheme:dark){:root{--bg:#1c1c1a;--bg2:#252523;--bg3:#2c2c2a;--text:#f0ede8;--text2:#b4b2a9;--text3:#888780;--border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.2);--ok:#5dcaa5;--ok-bg:#04342c;--warn:#ef9f27;--warn-bg:#412402;--err:#f09595;--err-bg:#501313;--info:#85b7eb;--info-bg:#042c53}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh}
+.shell{max-width:1280px;margin:0 auto;padding:1rem 1.5rem}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding:1rem 1.5rem;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl)}
+.nav{display:flex;gap:4px;margin-bottom:1.2rem;flex-wrap:wrap}
+.nb{padding:7px 16px;font-size:13px;border-radius:var(--r);border:0.5px solid var(--border);background:var(--bg);color:var(--text2);cursor:pointer;font-family:inherit;transition:all .1s}
+.nb:hover{background:var(--bg2)}.nb.active{background:var(--text);color:var(--bg);font-weight:500}
+.page{display:none}.page.active{display:block}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.2rem}
+@media(max-width:750px){.kpi-grid{grid-template-columns:1fr 1fr}.two-col,.three-col{grid-template-columns:1fr!important}.pipe-grid{grid-template-columns:1fr 1fr!important}}
+.kpi{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl);padding:14px 16px}
+.kpi-l{font-size:11px;color:var(--text3);margin-bottom:4px}
+.kpi-v{font-size:22px;font-weight:600}
+.kpi-d{font-size:11px;margin-top:4px;color:var(--text3)}
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.2rem;margin-bottom:1rem}
+.ct{font-size:11px;font-weight:500;color:var(--text3);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.05em}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.pr-row{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.pr-l{font-size:12px;color:var(--text);min-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-bg{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.pr-bar{height:100%;border-radius:3px;transition:width .3s}
+.pr-v{font-size:11px;color:var(--text3);min-width:34px;text-align:right}
+.tbl{width:100%;font-size:12px;border-collapse:collapse}
+.tbl th{font-weight:500;color:var(--text3);padding:6px 8px;text-align:left;border-bottom:0.5px solid var(--border);font-size:11px;white-space:nowrap}
+.tbl td{padding:7px 8px;border-bottom:0.5px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}.tbl tr:hover td{background:var(--bg2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500}
+.bs{background:var(--ok-bg);color:var(--ok)}.bw{background:var(--warn-bg);color:var(--warn)}
+.bi{background:var(--info-bg);color:var(--info)}.bd{background:var(--err-bg);color:var(--err)}
+.bg-b{background:var(--bg2);color:var(--text2)}
+.hrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;gap:8px}
+.ptitle{font-size:17px;font-weight:600}.psub{font-size:12px;color:var(--text2)}
+.pipe-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:1rem}
+.pipe-col{background:var(--bg2);border-radius:var(--r);padding:10px;min-height:80px}
+.pc-title{font-size:10px;font-weight:500;color:var(--text3);margin-bottom:8px;text-transform:uppercase;display:flex;justify-content:space-between}
+.deal{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--r);padding:9px;margin-bottom:6px;cursor:pointer}
+.deal:hover{border-color:var(--border2)}
+.deal-co{font-size:12px;font-weight:500}.deal-amt{font-size:11px;color:var(--ok);font-weight:500;margin-top:2px}
+.deal-src{font-size:10px;color:var(--text3);margin-top:2px}
+.btn{padding:6px 14px;font-size:12px;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg);color:var(--text);cursor:pointer;font-family:inherit;transition:all .1s}
+.btn:hover{background:var(--bg2)}.btn-p{background:var(--text);color:var(--bg);font-weight:500;border-color:var(--text)}.btn-p:hover{opacity:.85}
+.btn-d{color:var(--err);border-color:var(--err-bg)}.btn-sm{padding:3px 9px;font-size:11px}
+.inp,.sel{width:100%;padding:8px 10px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;margin-bottom:8px}
+.inp-sm{padding:5px 8px;font-size:12px;border:0.5px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit}
+.ta{width:100%;padding:8px 10px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;resize:vertical;min-height:70px;margin-bottom:8px}
+.fl{font-size:11px;color:var(--text3);margin-bottom:3px;display:block}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.5rem;width:min(560px,95vw);max-height:90vh;overflow-y:auto}
+.mf{display:flex;justify-content:flex-end;gap:8px;margin-top:1rem;padding-top:1rem;border-top:0.5px solid var(--border)}
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.srch{width:100%;padding:8px 12px;font-size:13px;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;margin-bottom:1rem}
+.fsel{padding:6px 10px;font-size:12px;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);font-family:inherit;cursor:pointer}
+.obj-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:0.5px solid var(--border);flex-wrap:wrap}
+.obj-row:last-child{border-bottom:none}
+.empty{font-size:13px;color:var(--text3);padding:1.5rem 0;text-align:center}
+.pagi{display:flex;gap:4px;align-items:center;margin-top:1rem;justify-content:center;flex-wrap:wrap}
+.pgb{padding:4px 10px;font-size:12px;border-radius:var(--r);border:0.5px solid var(--border);background:var(--bg);color:var(--text2);cursor:pointer}
+.pgb.active{background:var(--text);color:var(--bg)}
+.tab-nav{display:flex;gap:4px;margin-bottom:1rem;border-bottom:0.5px solid var(--border);padding-bottom:8px;flex-wrap:wrap}
+.tab-b{padding:5px 12px;font-size:12px;border-radius:var(--r);border:none;background:transparent;color:var(--text2);cursor:pointer;font-family:inherit}
+.tab-b.active{background:var(--bg2);color:var(--text);font-weight:500}
+.loading{text-align:center;padding:3rem;color:var(--text3);font-size:14px}
+</style>
+</head>
+<body>
+<div class="shell">
+<div class="header">
+  <div>
+    <div style="font-size:18px;font-weight:700;letter-spacing:-.3px;">Rabb Consulting</div>
+    <div style="font-size:11px;color:var(--text3);">agence-archibo.com · Pilotage commercial 2025</div>
+  </div>
+  <div id="save-label" style="font-size:11px;color:var(--text3);background:var(--bg2);padding:4px 12px;border-radius:var(--r);">—</div>
+</div>
+<nav class="nav">
+  <button class="nb active" onclick="go('dash',this)">Dashboard</button>
+  <button class="nb" onclick="go('pipeline',this)">Pipeline</button>
+  <button class="nb" id="crm-btn" onclick="go('crm',this)">CRM</button>
+  <button class="nb" onclick="go('obj',this)">Objectifs 2025</button>
+</nav>
+<div id="page-dash" class="page active"><div class="loading">Chargement...</div></div>
+<div id="page-pipeline" class="page"></div>
+<div id="page-crm" class="page"><div class="loading">Chargement des contacts...</div></div>
+<div id="page-obj" class="page"></div>
+<div id="mr"></div>
+</div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+const ET=['Identifié','Contacté','Proposition','Négociation','Signé'];
+const EC={Identifié:'#7F77DD',Contacté:'#378ADD',Proposition:'#EF9F27',Négociation:'#D4537E',Signé:'#1D9E75'};
+const EB={Identifié:'bi',Contacté:'bi',Proposition:'bw',Négociation:'bw',Signé:'bs'};
+const SRCS=['LinkedIn','Outlook','Recommandation','Email','Réseau','Événement','Appel entrant','Autre'];
+const SECTS=['Tech / IA','Finance','Industrie','Sport','Conseil','Santé','Distribution','Médias','Autre'];
+const AVC=[['#EEEDFE','#3C3489'],['#E1F5EE','#085041'],['#FAEEDA','#633806'],['#FAECE7','#4A1B0C'],['#E6F1FB','#0C447C'],['#FBEAF0','#72243E'],['#EAF3DE','#27500A'],['#FCEBEB','#791F1F']];
+const MO=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+const PS=50;
+
+// ── State ──────────────────────────────────────────────────────────────────
+let S=(()=>{try{return JSON.parse(localStorage.getItem('rabb_v6'))||ds();}catch(e){return ds();}})();
+let LI=[],OL=[],dataLoaded=false;
+
+function ds(){return{deals:[],manual:[],enriched:{},objectifs:{quant:[{name:'CA annuel',unit:'€',cible:200000,actuel:0},{name:'Missions signées',unit:'',cible:8,actuel:0},{name:'TJM moyen',unit:'€/j',cible:1700,actuel:0},{name:'Nouveaux clients',unit:'',cible:5,actuel:0},{name:'Valeur pipeline',unit:'€',cible:500000,actuel:0}],qual:[{name:'Satisfaction client',unit:'/5',cible:4.5,actuel:0},{name:'Notoriété LinkedIn',unit:'%',cible:30,actuel:0},{name:'Publications expert',unit:'',cible:24,actuel:0}]}};}
+
+function save(){
+  S.objectifs.quant[1].actuel=S.deals.filter(d=>d.etape==='Signé').length;
+  S.objectifs.quant[4].actuel=S.deals.reduce((s,d)=>s+(+d.valeur||0),0);
+  localStorage.setItem('rabb_v6',JSON.stringify(S));
+  const el=document.getElementById('save-label');
+  if(el)el.textContent='Sauvegardé '+new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ── Data loading ───────────────────────────────────────────────────────────
+function loadData(cb){
+  if(dataLoaded){cb();return;}
+  let done=0;
+  function check(){if(++done===2){dataLoaded=true;updateCRMBtn();cb();}}
+  
+  const s1=document.createElement('script');
+  s1.src='li.js';
+  s1.onload=()=>{LI=window.LI||[];check();};
+  s1.onerror=()=>{console.warn('li.js not found');check();};
+  document.head.appendChild(s1);
+  
+  const s2=document.createElement('script');
+  s2.src='ol.js';
+  s2.onload=()=>{OL=window.OL||[];check();};
+  s2.onerror=()=>{console.warn('ol.js not found');check();};
+  document.head.appendChild(s2);
+}
+
+function updateCRMBtn(){
+  const total=LI.length+OL.length+S.manual.length;
+  document.getElementById('crm-btn').textContent='CRM — '+total.toLocaleString('fr-FR')+' contacts';
+}
+
+// ── Utils ──────────────────────────────────────────────────────────────────
+function fM(n){n=+n||0;if(n>=1e6)return(n/1e6).toFixed(1)+'M€';if(n>=1000)return Math.round(n/1000)+'k€';return n.toLocaleString('fr-FR')+'€';}
+function pc(a,b){if(!+b)return 0;return Math.min(Math.round(+a/+b*100),999);}
+function pcB(a,b){return Math.min(pc(a,b),100);}
+function ini(n){return(n||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();}
+function avc(n){const i=Math.abs((n||'').split('').reduce((s,c)=>s+c.charCodeAt(0),0))%AVC.length;return AVC[i];}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function bE(e){return'<span class="badge '+(EB[e]||'bg-b')+'">'+(e||'—')+'</span>';}
+function sBg(a,c){if(!+c)return'bg-b';const r=pc(a,c);return r>=100?'bs':r>=60?'bw':'bd';}
+function sLb(a,c){if(!+c)return'—';const r=pc(a,c);return r>=100?'Atteint':r>=60?'En cours':'En retard';}
+function sCl(a,c){if(!+c)return'var(--text3)';const r=pc(a,c);return r>=100?'var(--ok)':r>=60?'var(--warn)':'var(--err)';}
+function nom(p){return p.n||p.nom||'';}
+function ent(p){return p.e||p.entreprise||'';}
+function email(p){return p.m||p.email||'';}
+function sect(p){return p.s||p.secteur||'';}
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+let curPage='dash';
+function go(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  curPage=id;
+  if(id==='crm'||id==='dash'){
+    loadData(()=>({dash:renderDash,pipeline:renderPipeline,crm:()=>renderCRM(0,'','','all'),obj:renderObj})[id]());
+  } else {
+    ({dash:renderDash,pipeline:renderPipeline,crm:()=>renderCRM(0,'','','all'),obj:renderObj})[id]();
+  }
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────────────────────
+function renderDash(){
+  const deals=S.deals,signes=deals.filter(d=>d.etape==='Signé');
+  const valPipe=deals.reduce((s,d)=>s+(+d.valeur||0),0);
+  const valSign=signes.reduce((s,d)=>s+(+d.valeur||0),0);
+  const ca=+S.objectifs.quant[0].actuel||0,caObj=+S.objectifs.quant[0].cible||1;
+  const monthly=Array(12).fill(0);
+  signes.forEach(d=>{if(d.date_sig){const m=new Date(d.date_sig).getMonth();if(m>=0&&m<12)monthly[m]+=(+d.valeur||0);}});
+  const maxM=Math.max(...monthly,1),cm=new Date().getMonth();
+  const bars=MO.map((m,i)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;"><div style="width:100%;border-radius:2px 2px 0 0;background:${i<=cm?'var(--pu)':'var(--bg3)'};opacity:${i<cm?.6:1};height:${Math.max(Math.round(monthly[i]/maxM*60),monthly[i]>0?3:0)}px;min-height:0;"></div><div style="font-size:9px;color:var(--text3);">${m}</div></div>`).join('');
+  const pipeR=ET.map(e=>{const it=deals.filter(d=>d.etape===e),v=it.reduce((s,d)=>s+(+d.valeur||0),0);return`<div class="pr-row"><div class="pr-l" style="color:${EC[e]};">${e}</div><div class="pr-bg"><div class="pr-bar" style="width:${deals.length?Math.round(it.length/deals.length*100):0}%;background:${EC[e]};"></div></div><div class="pr-v">${it.length}</div><div style="font-size:11px;color:var(--text3);min-width:52px;text-align:right;">${fM(v)}</div></div>`;}).join('');
+  const objB=S.objectifs.quant.slice(0,4).map(o=>`<div class="pr-row"><div class="pr-l">${o.name}</div><div class="pr-bg"><div class="pr-bar" style="width:${pcB(o.actuel,o.cible)}%;background:var(--pu);"></div></div><div class="pr-v">${pc(o.actuel,o.cible)}%</div></div>`).join('');
+  const top=[...deals].sort((a,b)=>(+b.valeur||0)-(+a.valeur||0)).slice(0,6);
+  const topR=top.length?top.map(d=>`<tr><td style="font-weight:500;">${d.prospect||'—'}</td><td>${d.mission||'—'}</td><td>${bE(d.etape)}</td><td style="color:var(--ok);font-weight:500;">${d.valeur?fM(d.valeur):'—'}</td><td style="color:var(--text2);">${d.source||'—'}</td></tr>`).join(''):`<tr><td colspan="5" class="empty">Aucune opportunité — ajoutez-en dans Pipeline</td></tr>`;
+  const totalCRM=LI.length+OL.length+S.manual.length;
+  document.getElementById('page-dash').innerHTML=`
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-l">CA réalisé</div><div class="kpi-v">${fM(ca)}</div><div class="kpi-d" style="color:${pc(ca,caObj)>=100?'var(--ok)':'var(--text3)'};">${pc(ca,caObj)}% de l'objectif (${fM(caObj)})</div></div>
+      <div class="kpi"><div class="kpi-l">Missions signées</div><div class="kpi-v">${signes.length} / ${S.objectifs.quant[1].cible}</div><div class="kpi-d">${pc(signes.length,S.objectifs.quant[1].cible)}% de l'objectif</div></div>
+      <div class="kpi"><div class="kpi-l">Valeur pipeline</div><div class="kpi-v">${fM(valPipe)}</div><div class="kpi-d">${deals.length} opport. · ${fM(valSign)} signés</div></div>
+      <div class="kpi"><div class="kpi-l">Réseau total</div><div class="kpi-v">${totalCRM.toLocaleString('fr-FR')}</div><div class="kpi-d">${LI.length.toLocaleString('fr-FR')} LinkedIn · ${OL.length.toLocaleString('fr-FR')} Outlook</div></div>
+    </div>
+    <div class="two-col">
+      <div class="card"><div class="ct">Objectifs annuels</div>${objB||'<div class="empty">Configurez vos objectifs</div>'}</div>
+      <div class="card"><div class="ct">Pipeline par étape</div>${deals.length?pipeR:'<div class="empty">Aucune opportunité</div>'}</div>
+    </div>
+    <div class="card"><div class="ct">CA mensuel — missions signées</div><div style="display:flex;align-items:flex-end;gap:4px;height:80px;">${bars}</div></div>
+    <div class="card"><div class="ct">Top opportunités</div><table class="tbl"><tr><th>Prospect</th><th>Mission</th><th>Étape</th><th>Valeur</th><th>Source</th></tr>${topR}</table></div>`;
+}
+
+// ── PIPELINE ───────────────────────────────────────────────────────────────
+function renderPipeline(){
+  const deals=S.deals,valTotal=deals.reduce((s,d)=>s+(+d.valeur||0),0);
+  const kanban=ET.map(e=>{
+    const it=deals.filter(d=>d.etape===e),cv=it.reduce((s,d)=>s+(+d.valeur||0),0);
+    const cards=it.map(d=>`<div class="deal" onclick="openDeal('${d.id}')"><div class="deal-co">${d.prospect||'—'}</div>${d.mission?`<div style="font-size:10px;color:var(--text2);margin-top:1px;">${d.mission}</div>`:''} ${d.valeur?`<div class="deal-amt">${fM(d.valeur)}</div>`:''}<div class="deal-src">${[d.source,d.date_contact].filter(Boolean).join(' · ')}</div></div>`).join('');
+    return`<div class="pipe-col"><div class="pc-title"><span style="color:${EC[e]};">${e}</span><span>${it.length}</span></div>${cv>0?`<div style="font-size:10px;color:var(--text3);margin-bottom:6px;">${fM(cv)}</div>`:''}${cards||'<div style="font-size:11px;color:var(--text3);text-align:center;padding:10px 0;">—</div>'}</div>`;
+  }).join('');
+  const rows=deals.length?deals.map(d=>`<tr><td style="font-weight:500;">${d.prospect||'—'}</td><td>${d.mission||'—'}</td><td>${bE(d.etape)}</td><td style="color:var(--ok);font-weight:500;">${d.valeur?fM(d.valeur):'—'}</td><td>${d.tjm?d.tjm+'€/j':'—'}</td><td>${d.source||'—'}</td><td>${d.date_contact||'—'}</td><td><button class="btn btn-sm" onclick="openDeal('${d.id}')">Éditer</button> <button class="btn btn-sm btn-d" onclick="delDeal('${d.id}')">✕</button></td></tr>`).join(''):`<tr><td colspan="8" class="empty">Aucune opportunité</td></tr>`;
+  document.getElementById('page-pipeline').innerHTML=`
+    <div class="hrow"><div><div class="ptitle">Pipeline commercial</div><div class="psub">${deals.length} opportunités · ${fM(valTotal)} en jeu</div></div><button class="btn btn-p" onclick="openDeal(null)">+ Nouvelle opportunité</button></div>
+    <div class="pipe-grid">${kanban}</div>
+    <div class="card"><div class="ct">Toutes les opportunités</div><div style="overflow-x:auto;"><table class="tbl"><tr><th>Prospect</th><th>Mission</th><th>Étape</th><th>Valeur</th><th>TJM</th><th>Source</th><th>Date</th><th>Actions</th></tr>${rows}</table></div></div>`;
+}
+
+// ── CRM ────────────────────────────────────────────────────────────────────
+let cP=0,cF='',cSect='',cTab='all';
+
+function renderCRM(page,filter,sect,tab){
+  cP=page||0;cF=filter||'';cSect=sect||'';cTab=tab||'all';
+  let pool;
+  if(cTab==='li') pool=LI.map(p=>({...p,_s:'li'}));
+  else if(cTab==='ol') pool=OL.map(p=>({...p,_s:'ol'}));
+  else if(cTab==='mn') pool=S.manual.map(p=>({...p,_s:'mn'}));
+  else pool=[...LI.map(p=>({...p,_s:'li'})),...OL.map(p=>({...p,_s:'ol'})),...S.manual.map(p=>({...p,_s:'mn'}))];
+
+  if(cF){const q=cF.toLowerCase();pool=pool.filter(p=>[nom(p),ent(p),email(p),sect(p),p.poste||''].join(' ').toLowerCase().includes(q));}
+  if(cSect) pool=pool.filter(p=>sect(p)===cSect);
+
+  const total=pool.length,pages=Math.ceil(total/PS);
+  const slice=pool.slice(cP*PS,(cP+1)*PS);
+
+  // Secteur stats
+  const allPool=[...LI.map(p=>({...p,_s:'li'})),...OL.map(p=>({...p,_s:'ol'})),...S.manual.map(p=>({...p,_s:'mn'}))];
+  const bySect={};
+  allPool.forEach(p=>{const s=sect(p)||'Autre';bySect[s]=(bySect[s]||0)+1;});
+  const sB=Object.entries(bySect).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([s,n])=>`<div class="pr-row"><div class="pr-l">${s}</div><div class="pr-bg"><div class="pr-bar" style="width:${Math.round(n/allPool.length*100)}%;background:var(--pu);"></div></div><div class="pr-v">${n}</div></div>`).join('');
+
+  // Top OL
+  const topOL=[...OL].sort((a,b)=>(b.x||0)-(a.x||0)).slice(0,5);
+  const olB=topOL.map(p=>`<div class="pr-row"><div class="pr-l">${nom(p)||email(p)}</div><div class="pr-bg"><div class="pr-bar" style="width:${Math.min(Math.round((p.x||0)/((topOL[0]||{}).x||1)*100),100)}%;background:var(--te);"></div></div><div class="pr-v">${p.x||0}</div></div>`).join('');
+
+  const rows=slice.map(p=>{
+    const enr=S.enriched[p.id]||{};
+    const [bg,fg]=avc(nom(p));
+    const deal=S.deals.find(d=>d.prospect_id===p.id);
+    const sb=p._s==='li'?'<span class="badge bi" style="font-size:10px;padding:1px 5px;">LI</span>':p._s==='ol'?'<span class="badge bw" style="font-size:10px;padding:1px 5px;">OL</span>':'<span class="badge bg-b" style="font-size:10px;padding:1px 5px;">+</span>';
+    const em=email(p);
+    return`<tr>
+      <td><div style="display:flex;align-items:center;gap:8px;"><div class="av" style="background:${bg};color:${fg};">${ini(nom(p))}</div><div><div style="font-weight:500;">${nom(p)||'—'}</div><div style="font-size:10px;color:var(--text3);">${p.poste||p.p||''}</div></div></div></td>
+      <td>${ent(p)||'—'}</td>
+      <td>${sect(p)?`<span class="badge bg-b">${sect(p)}</span>`:'—'}</td>
+      <td style="font-size:11px;">${em?`<a href="mailto:${em}" style="color:var(--info);">${em}</a>`:'—'}</td>
+      <td>${sb}</td>
+      <td>${deal?bE(deal.etape):'<span class="badge bg-b">Réseau</span>'}</td>
+      <td style="white-space:nowrap;">${p.l||p.linkedin?`<a href="${p.l||p.linkedin}" target="_blank" class="btn btn-sm">LI</a> `:''}${p._s!=='mn'?`<button class="btn btn-sm" onclick="openNote('${p.id}','${p._s}')">Note</button> `:''}<button class="btn btn-sm btn-p" onclick="toPipe('${p.id}','${(nom(p)||'').replace(/'/g,"\\'")}','${(ent(p)||'').replace(/'/g,"\\'")}')">→ Pipeline</button></td>
+    </tr>`;
+  }).join('');
+
+  const pgRange=[];const start=Math.max(0,cP-3);
+  for(let i=start;i<Math.min(pages,start+7);i++)pgRange.push(i);
+  const pagi=pages<=1?'':`<div class="pagi"><button class="pgb" onclick="renderCRM(${cP-1},'${cF}','${cSect}','${cTab}')" ${cP===0?'disabled':''}>‹</button>${pgRange.map(i=>`<button class="pgb ${i===cP?'active':''}" onclick="renderCRM(${i},'${cF}','${cSect}','${cTab}')">${i+1}</button>`).join('')}<button class="pgb" onclick="renderCRM(${cP+1},'${cF}','${cSect}','${cTab}')" ${cP>=pages-1?'disabled':''}>›</button><span style="font-size:11px;color:var(--text3);margin-left:6px;">${total.toLocaleString('fr-FR')} contacts</span></div>`;
+
+  const sOpts=SECTS.map(s=>`<option value="${s}" ${cSect===s?'selected':''}>${s}</option>`).join('');
+  const total_all=LI.length+OL.length+S.manual.length;
+
+  document.getElementById('page-crm').innerHTML=`
+    <div class="hrow"><div><div class="ptitle">CRM</div><div class="psub">${total_all.toLocaleString('fr-FR')} contacts · ${LI.length.toLocaleString('fr-FR')} LinkedIn · ${OL.length.toLocaleString('fr-FR')} Outlook · ${S.manual.length} manuels</div></div><button class="btn btn-p" onclick="openNewContact()">+ Ajouter</button></div>
+    <div class="two-col" style="margin-bottom:1rem;">
+      <div class="card"><div class="ct">Par secteur</div>${sB||'<div class="empty">—</div>'}</div>
+      <div class="card"><div class="ct">Top contacts Outlook (échanges)</div>${olB||'<div class="empty">—</div>'}</div>
+    </div>
+    <div class="tab-nav">
+      <button class="tab-b ${cTab==='all'?'active':''}" onclick="renderCRM(0,'${cF}','${cSect}','all')">Tous (${total_all.toLocaleString('fr-FR')})</button>
+      <button class="tab-b ${cTab==='li'?'active':''}" onclick="renderCRM(0,'${cF}','${cSect}','li')">LinkedIn (${LI.length.toLocaleString('fr-FR')})</button>
+      <button class="tab-b ${cTab==='ol'?'active':''}" onclick="renderCRM(0,'${cF}','${cSect}','ol')">Outlook (${OL.length.toLocaleString('fr-FR')})</button>
+      <button class="tab-b ${cTab==='mn'?'active':''}" onclick="renderCRM(0,'${cF}','${cSect}','mn')">Manuels (${S.manual.length})</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;">
+      <input class="srch" style="margin:0;flex:1;min-width:200px;" placeholder="Rechercher nom, email, entreprise, secteur..." oninput="renderCRM(0,this.value,'${cSect}','${cTab}')" value="${cF}" />
+      <select class="fsel" onchange="renderCRM(0,'${cF}',this.value,'${cTab}')"><option value="">Tous secteurs</option>${sOpts}</select>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;"><div style="overflow-x:auto;"><table class="tbl"><tr><th>Contact</th><th>Entreprise</th><th>Secteur</th><th>Email</th><th>Src</th><th>Statut</th><th>Actions</th></tr>${rows||'<tr><td colspan="7" class="empty">Aucun résultat</td></tr>'}</table></div></div>
+    ${pagi}`;
+}
+
+// ── OBJECTIFS ──────────────────────────────────────────────────────────────
+function renderObj(){
+  const q=S.objectifs.quant,ql=S.objectifs.qual;
+  const qR=q.map((o,i)=>{const auto=i===1||i===4;return`<div class="obj-row"><div style="flex:2;min-width:140px;"><div style="font-size:13px;font-weight:500;">${o.name}</div>${auto?'<div style="font-size:10px;color:var(--text3);">Calculé depuis le pipeline</div>':''}</div><div style="display:flex;align-items:center;gap:5px;min-width:140px;"><span style="font-size:11px;color:var(--text3);">Cible</span><input class="inp-sm" type="number" value="${o.cible}" style="width:80px;" onchange="S.objectifs.quant[${i}].cible=+this.value;save();renderObj();" /><span style="font-size:11px;color:var(--text3);">${o.unit}</span></div>${auto?`<div style="font-size:13px;font-weight:500;min-width:90px;color:${sCl(o.actuel,o.cible)};">${o.unit==='€'?fM(o.actuel):(o.actuel||0)} ${o.unit!=='€'?o.unit:''}</div>`:`<div style="display:flex;align-items:center;gap:5px;min-width:140px;"><input class="inp-sm" type="number" value="${o.actuel}" style="width:80px;" onchange="S.objectifs.quant[${i}].actuel=+this.value;save();renderObj();" /><span style="font-size:11px;color:var(--text3);">${o.unit}</span></div>`}<div class="pr-bg" style="flex:1;"><div class="pr-bar" style="width:${pcB(o.actuel,o.cible)}%;background:var(--pu);"></div></div><div class="pr-v">${pc(o.actuel,o.cible)}%</div><span class="badge ${sBg(o.actuel,o.cible)}">${sLb(o.actuel,o.cible)}</span></div>`;}).join('');
+  const qlR=ql.map((o,i)=>`<div class="obj-row"><div style="font-size:13px;font-weight:500;flex:2;min-width:140px;">${o.name}</div><div style="display:flex;align-items:center;gap:5px;min-width:140px;"><span style="font-size:11px;color:var(--text3);">Cible</span><input class="inp-sm" type="number" step="0.1" value="${o.cible}" style="width:70px;" onchange="S.objectifs.qual[${i}].cible=+this.value;save();renderObj();" /><span style="font-size:11px;color:var(--text3);">${o.unit}</span></div><div style="display:flex;align-items:center;gap:5px;min-width:140px;"><span style="font-size:11px;color:var(--text3);">Réalisé</span><input class="inp-sm" type="number" step="0.1" value="${o.actuel}" style="width:70px;" onchange="S.objectifs.qual[${i}].actuel=+this.value;save();renderObj();" /><span style="font-size:11px;color:var(--text3);">${o.unit}</span></div><div class="pr-bg" style="flex:1;"><div class="pr-bar" style="width:${pcB(o.actuel,o.cible)}%;background:var(--te);"></div></div><div class="pr-v">${pc(o.actuel,o.cible)}%</div><span class="badge ${sBg(o.actuel,o.cible)}">${sLb(o.actuel,o.cible)}</span></div>`).join('');
+  document.getElementById('page-obj').innerHTML=`<div class="hrow"><div><div class="ptitle">Objectifs 2025</div><div class="psub">Sauvegarde automatique à chaque modification</div></div></div><div class="card"><div class="ct">Objectifs quantitatifs</div>${qR}</div><div class="card"><div class="ct">Objectifs qualitatifs</div>${qlR}</div>`;
+}
+
+// ── MODALS ─────────────────────────────────────────────────────────────────
+function openDeal(id){
+  const d=id?S.deals.find(x=>x.id===id):null;
+  modal(`<div style="font-size:15px;font-weight:600;margin-bottom:1.2rem;">${d?'Modifier':'Nouvelle opportunité'}</div>
+    <div class="fg"><div><label class="fl">Prospect *</label><input class="inp" id="dp" value="${d?d.prospect||'':''}" placeholder="Nom du prospect" /></div><div><label class="fl">Mission</label><input class="inp" id="dm" value="${d?d.mission||'':''}" placeholder="Stratégie 2026..." /></div></div>
+    <div class="fg"><div><label class="fl">Étape</label><select class="sel" id="de">${ET.map(e=>`<option ${d&&d.etape===e?'selected':''}>${e}</option>`).join('')}</select></div><div><label class="fl">Source</label><select class="sel" id="ds"><option value="">—</option>${SRCS.map(s=>`<option ${d&&d.source===s?'selected':''}>${s}</option>`).join('')}</select></div></div>
+    <div class="fg"><div><label class="fl">Valeur (€)</label><input class="inp" id="dv" type="number" value="${d?d.valeur||'':''}" placeholder="50000" /></div><div><label class="fl">TJM (€/j)</label><input class="inp" id="dt" type="number" value="${d?d.tjm||'':''}" placeholder="1800" /></div></div>
+    <div class="fg"><div><label class="fl">Date contact</label><input class="inp" id="ddc" type="date" value="${d?d.date_contact||'':''}" /></div><div><label class="fl">Date signature</label><input class="inp" id="dds" type="date" value="${d?d.date_sig||'':''}" /></div></div>
+    <div><label class="fl">Notes</label><textarea class="ta" id="dn">${d?d.notes||'':''}</textarea></div>
+    <div class="mf"><button class="btn" onclick="closeM()">Annuler</button>${d?`<button class="btn btn-d" onclick="delDeal('${d.id}');closeM()">Supprimer</button>`:''}<button class="btn btn-p" onclick="saveDeal('${id||''}')">Enregistrer</button></div>`);
+}
+
+function toPipe(pid,n,e){
+  modal(`<div style="font-size:15px;font-weight:600;margin-bottom:1.2rem;">→ Pipeline — ${n}</div>
+    <div class="fg"><div><label class="fl">Prospect</label><input class="inp" id="dp" value="${n}${e?' ('+e+')':''}" /></div><div><label class="fl">Mission</label><input class="inp" id="dm" placeholder="Conseil stratégique..." /></div></div>
+    <div class="fg"><div><label class="fl">Étape</label><select class="sel" id="de">${ET.map(e=>`<option>${e}</option>`).join('')}</select></div><div><label class="fl">Source</label><select class="sel" id="ds">${SRCS.map(s=>`<option>${s}</option>`).join('')}</select></div></div>
+    <div class="fg"><div><label class="fl">Valeur (€)</label><input class="inp" id="dv" type="number" placeholder="50000" /></div><div><label class="fl">TJM (€/j)</label><input class="inp" id="dt" type="number" placeholder="1800" /></div></div>
+    <div class="fg"><div><label class="fl">Date contact</label><input class="inp" id="ddc" type="date" value="${new Date().toISOString().slice(0,10)}" /></div><div><label class="fl">Date signature</label><input class="inp" id="dds" type="date" /></div></div>
+    <div><label class="fl">Notes</label><textarea class="ta" id="dn"></textarea></div>
+    <div class="mf"><button class="btn" onclick="closeM()">Annuler</button><button class="btn btn-p" onclick="saveDeal('','${pid}')">Ajouter au pipeline</button></div>`);
+}
+
+function saveDeal(id,pid){
+  const g=x=>(document.getElementById(x)||{}).value||'';
+  const d={id:id||uid(),prospect:g('dp'),mission:g('dm'),etape:g('de'),source:g('ds'),valeur:g('dv'),tjm:g('dt'),date_contact:g('ddc'),date_sig:g('dds'),notes:g('dn'),prospect_id:pid||''};
+  if(!d.prospect){alert('Le nom du prospect est requis.');return;}
+  if(id){const i=S.deals.findIndex(x=>x.id===id);if(i>=0)S.deals[i]=d;}else S.deals.push(d);
+  save();closeM();renderPipeline();
+}
+
+function delDeal(id){if(!confirm('Supprimer ?'))return;S.deals=S.deals.filter(x=>x.id!==id);save();renderPipeline();}
+
+function openNote(id,src){
+  const enr=S.enriched[id]||{};
+  let p=src==='li'?LI.find(x=>x.id===id):OL.find(x=>x.id===id)||{};
+  if(!p) p={};
+  const n=nom(p)||'',em=email(p)||'',en=ent(p)||'';
+  modal(`<div style="font-size:15px;font-weight:600;margin-bottom:1.2rem;">Note — ${n||em}</div>
+    <div style="background:var(--bg2);border-radius:var(--r);padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--text2);">
+      <div style="font-weight:500;color:var(--text);">${n}${p.poste||p.p?' · '+(p.poste||p.p):''}</div>
+      <div>${en}</div>${em?`<div style="color:var(--info);">${em}</div>`:''}${p.x?`<div style="color:var(--text3);">${p.x} échanges email</div>`:''}
+    </div>
+    <div><label class="fl">Secteur</label><select class="sel" id="ns"><option value="">— Garder ${sect(p)||'auto'} —</option>${SECTS.map(s=>`<option value="${s}" ${enr.secteur===s?'selected':''}>${s}</option>`).join('')}</select></div>
+    <div><label class="fl">Dernier contact</label><input class="inp" id="ndc" type="date" value="${enr.dernier_contact||p.d||''}" /></div>
+    <div><label class="fl">Notes</label><textarea class="ta" id="nn">${enr.notes||''}</textarea></div>
+    <div class="mf"><button class="btn" onclick="closeM()">Fermer</button><button class="btn btn-p" onclick="saveNote('${id}')">Enregistrer</button></div>`);
+}
+
+function saveNote(id){
+  const g=x=>(document.getElementById(x)||{}).value||'';
+  S.enriched[id]={secteur:g('ns'),dernier_contact:g('ndc'),notes:g('nn')};
+  save();closeM();
+}
+
+function openNewContact(){
+  modal(`<div style="font-size:15px;font-weight:600;margin-bottom:1.2rem;">Nouveau contact</div>
+    <div class="fg"><div><label class="fl">Nom *</label><input class="inp" id="cn" placeholder="Marie Dupont" /></div><div><label class="fl">Poste</label><input class="inp" id="cp" placeholder="DG, VP Strategy..." /></div></div>
+    <div class="fg"><div><label class="fl">Entreprise</label><input class="inp" id="ce" /></div><div><label class="fl">Secteur</label><select class="sel" id="cs"><option value="">—</option>${SECTS.map(s=>`<option>${s}</option>`).join('')}</select></div></div>
+    <div class="fg"><div><label class="fl">Email</label><input class="inp" id="cm" type="email" /></div><div><label class="fl">Source</label><select class="sel" id="csc"><option value="">—</option>${SRCS.map(s=>`<option>${s}</option>`).join('')}</select></div></div>
+    <div><label class="fl">Notes</label><textarea class="ta" id="cnotes"></textarea></div>
+    <div class="mf"><button class="btn" onclick="closeM()">Annuler</button><button class="btn btn-p" onclick="saveContact()">Ajouter</button></div>`);
+}
+
+function saveContact(){
+  const g=x=>(document.getElementById(x)||{}).value||'';
+  const n=g('cn');if(!n){alert('Le nom est requis.');return;}
+  S.manual.push({id:uid(),nom:n,poste:g('cp'),entreprise:g('ce'),secteur:g('cs'),email:g('cm'),source:g('csc')||'Autre',notes:g('cnotes'),_s:'mn'});
+  save();closeM();updateCRMBtn();renderCRM(0,cF,cSect,cTab);
+}
+
+function modal(html){document.getElementById('mr').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeM()"><div class="modal">${html}</div></div>`;}
+function closeM(){document.getElementById('mr').innerHTML='';}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+save();
+loadData(()=>renderDash());
+</script>
+</body>
+</html>
