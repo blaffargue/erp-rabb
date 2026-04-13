@@ -129,29 +129,29 @@ function loadData(cb){
   if(dataLoaded){cb();return;}
   let done=0;
   function check(){if(++done===4){dataLoaded=true;PROSP_DATA=window.PROSP||[];updateCRMBtn();cb();}}
-  // Load bp.js with multi-year support
-  const sbp=document.createElement('script');
-  sbp.src='bp.js';
-  sbp.onload=()=>{
+  // bp.js — multi-year compatible
+  const s0=document.createElement('script');
+  s0.src='bp.js';
+  s0.onload=()=>{
     try{
-      const raw=window.BP||{};
-      if(raw.years&&raw.current_year){
-        const keys=Object.keys(raw.years).map(Number).sort();
-        const yr=keys.includes(raw.current_year)?raw.current_year:keys[keys.length-1];
-        const yd=raw.years[yr]||{};
-        window.BP={clients:yd.clients||[],cr:yd.cr||[],totaux:yd.totaux||{},
-          years:raw.years,current_year:yr,available_years:raw.available_years||keys};
+      const r=window.BP||{};
+      if(r.years){
+        const keys=Object.keys(r.years).map(Number).sort();
+        const yr=keys.includes(r.current_year||0)?r.current_year:keys[keys.length-1];
+        const yd=r.years[yr]||{};
+        BP={clients:yd.clients||[],cr:yd.cr||[],totaux:yd.totaux||{},years:r.years,current_year:yr,available_years:keys};
+      } else {
+        BP={clients:r.clients||[],cr:r.cr||[],totaux:r.totaux||{},years:{},current_year:2026,available_years:[]};
       }
-    }catch(ex){}
+    }catch(e){BP={clients:[],cr:[],totaux:{},years:{},current_year:2026,available_years:[]};}
     check();
   };
-  sbp.onerror=()=>check();
-  document.head.appendChild(sbp);
-  // Load prosp.js
+  s0.onerror=()=>{BP={clients:[],cr:[],totaux:{},years:{},current_year:2026,available_years:[]};check();};
+  document.head.appendChild(s0);
+  // prosp.js
   const sp=document.createElement('script');
   sp.src='prosp.js';sp.onload=()=>check();sp.onerror=()=>check();
   document.head.appendChild(sp);
-  
   
   const s1=document.createElement('script');
   s1.src='li.js';
@@ -209,14 +209,14 @@ function renderDash(){
   const valSign=signes.reduce((s,d)=>s+(+d.valeur||0),0);
 
   // Pull CA data from Business Plan if available
-  const bpClients=(window.BP&&window.BP.clients)||BP.clients||[];
-  const _bp=window.BP||BP||{};const bpSigné=(_bp.totaux&&_bp.totaux.signe)||0;
-  const bpProj=BP.totaux&&BP.totaux.projection||0;
+  const bpClients=(window.BP&&window.BP.clients)||[];
+  const bpSigné=(window.BP&&window.BP.totaux&&window.BP.totaux.signe)||0;
+  const bpProj=(window.BP&&window.BP.totaux&&window.BP.totaux.projection)||0;
   const bpTaux=bpProj?Math.round(bpSigné/bpProj*100):0;
   const bpMissions=bpClients.filter(c=>c.statut==='signé').length;
   const bpEnNego=bpClients.filter(c=>['négociation','négo'].includes(c.statut)).length;
   const bpResultatNet=(BP.cr||[]).find(x=>x.label.includes('sultat net'));
-  const hasBP=bpClients.length>0;
+  const hasBP=bpClients&&bpClients.length>0;
 
   // Sync BP data into objectifs if BP loaded
   if(hasBP && bpSigné>0){
