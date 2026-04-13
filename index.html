@@ -129,14 +129,27 @@ let PROSP_DATA=[];
 function loadData(cb){
   if(dataLoaded){cb();return;}
   let done=0;
-  function check(){if(++done===4){dataLoaded=true;PROSP_DATA=window.PROSP||[];updateCRMBtn();cb();}}
-  const sp=document.createElement('script');
-  sp.src='prosp.js';sp.onload=()=>{window.PROSP=window.PROSP||[];check();};
-  sp.onerror=()=>{window.PROSP=[];check();};
-  document.head.appendChild(sp);
+  function check(){if(++done===3){dataLoaded=true;updateCRMBtn();cb();}}
   const s0=document.createElement('script');
-  s0.src='bp.js';s0.onload=()=>{BP=window.BP||{clients:[],cr:[],totaux:{}};check();};
-  s0.onerror=()=>{BP={clients:[],cr:[],totaux:{}};check();};
+  s0.src='bp.js';
+  s0.onload=()=>{
+    try{
+      const raw=window.BP||{};
+      if(raw.years&&raw.current_year){
+        const yr=raw.current_year;
+        const keys=Object.keys(raw.years).map(Number).sort();
+        const bestYr=keys.includes(yr)?yr:keys[keys.length-1];
+        const yd=raw.years[bestYr]||{};
+        BP={clients:yd.clients||[],cr:yd.cr||[],totaux:yd.totaux||{},
+            years:raw.years,current_year:bestYr,available_years:raw.available_years||keys};
+      } else {
+        BP={clients:raw.clients||[],cr:raw.cr||[],totaux:raw.totaux||{},
+            years:{},current_year:new Date().getFullYear(),available_years:[]};
+      }
+    }catch(ex){BP={clients:[],cr:[],totaux:{},years:{},current_year:2026,available_years:[]};}
+    check();
+  };
+  s0.onerror=()=>{BP={clients:[],cr:[],totaux:{},years:{},current_year:2026,available_years:[]};check();};
   document.head.appendChild(s0);
   
   const s1=document.createElement('script');
@@ -195,7 +208,7 @@ function renderDash(){
   const valSign=signes.reduce((s,d)=>s+(+d.valeur||0),0);
 
   // Pull CA data from Business Plan if available
-  const bpClients=BP.clients||[];
+  const bpClients=(BP&&BP.clients)||[];
   const bpSigné=BP.totaux&&BP.totaux.signe||0;
   const bpProj=BP.totaux&&BP.totaux.projection||0;
   const bpTaux=bpProj?Math.round(bpSigné/bpProj*100):0;
