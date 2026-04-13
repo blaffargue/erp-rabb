@@ -86,11 +86,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <button class="nb" onclick="go('pipeline',this)">Pipeline</button>
   <button class="nb" id="crm-btn" onclick="go('crm',this)">CRM</button>
   <button class="nb" onclick="go('obj',this)">Objectifs 2025</button>
+  <button class="nb" onclick="go('bp',this)">Business Plan</button>
 </nav>
 <div id="page-dash" class="page active"><div class="loading">Chargement...</div></div>
 <div id="page-pipeline" class="page"></div>
 <div id="page-crm" class="page"><div class="loading">Chargement des contacts...</div></div>
 <div id="page-obj" class="page"></div>
+<div id="page-bp" class="page"></div>
 <div id="mr"></div>
 </div>
 
@@ -106,6 +108,7 @@ const MO=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','D
 const PS=50;
 
 // ── State ──────────────────────────────────────────────────────────────────
+let BP={clients:[],cr:[],totaux:{}};
 let S=(()=>{try{return JSON.parse(localStorage.getItem('rabb_v6'))||ds();}catch(e){return ds();}})();
 let LI=[],OL=[],dataLoaded=false;
 
@@ -123,7 +126,11 @@ function save(){
 function loadData(cb){
   if(dataLoaded){cb();return;}
   let done=0;
-  function check(){if(++done===2){dataLoaded=true;updateCRMBtn();cb();}}
+  function check(){if(++done===3){dataLoaded=true;updateCRMBtn();cb();}}
+  const s0=document.createElement('script');
+  s0.src='bp.js';s0.onload=()=>{BP=window.BP||{clients:[],cr:[],totaux:{}};check();};
+  s0.onerror=()=>{BP={clients:[],cr:[],totaux:{}};check();};
+  document.head.appendChild(s0);
   
   const s1=document.createElement('script');
   s1.src='li.js';
@@ -168,9 +175,9 @@ function go(id,btn){
   if(btn)btn.classList.add('active');
   curPage=id;
   if(id==='crm'||id==='dash'){
-    loadData(()=>({dash:renderDash,pipeline:renderPipeline,crm:()=>renderCRM(0,'','','all'),obj:renderObj})[id]());
+    loadData(()=>({dash:renderDash,pipeline:renderPipeline,crm:()=>renderCRM(0,'','','all'),obj:renderObj,bp:renderBP})[id]());
   } else {
-    ({dash:renderDash,pipeline:renderPipeline,crm:()=>renderCRM(0,'','','all'),obj:renderObj})[id]();
+    ({dash:renderDash,pipeline:renderPipeline,crm:()=>renderCRM(0,'','','all'),obj:renderObj,bp:renderBP})[id]();
   }
 }
 
@@ -366,6 +373,97 @@ function saveContact(){
   const n=g('cn');if(!n){alert('Le nom est requis.');return;}
   S.manual.push({id:uid(),nom:n,poste:g('cp'),entreprise:g('ce'),secteur:g('cs'),email:g('cm'),source:g('csc')||'Autre',notes:g('cnotes'),_s:'mn'});
   save();closeM();updateCRMBtn();renderCRM(0,cF,cSect,cTab);
+}
+
+
+// ── BUSINESS PLAN ──────────────────────────────────────────────────────────
+function renderBP(){
+  const clients=BP.clients||[];
+  const cr=BP.cr||[];
+  const tot=BP.totaux||{};
+  const totalProj=tot.projection||0;
+  const totalSign=tot.signe||0;
+  const tauxReal=totalProj?Math.round(totalSign/totalProj*100):0;
+
+  // KPIs
+  const kpis=`<div class="kpi-grid">
+    <div class="kpi"><div class="kpi-l">CA projeté</div><div class="kpi-v">${fM(totalProj)}</div><div class="kpi-d">Objectif annuel</div></div>
+    <div class="kpi"><div class="kpi-l">CA signé</div><div class="kpi-v">${fM(totalSign)}</div><div class="kpi-d" style="color:${tauxReal>=80?'var(--ok)':tauxReal>=50?'var(--warn)':'var(--err)'};">${tauxReal}% de réalisation</div></div>
+    <div class="kpi"><div class="kpi-l">Reste à signer</div><div class="kpi-v">${fM(totalProj-totalSign)}</div><div class="kpi-d">${clients.filter(c=>['négociation','négo'].includes(c.statut)).length} missions en cours</div></div>
+    <div class="kpi"><div class="kpi-l">Résultat net</div><div class="kpi-v">${fM((cr.find(x=>x.label.includes('sultat net'))||{val:0}).val)}</div><div class="kpi-d">Après IS</div></div>
+  </div>`;
+
+  // Progress bar global
+  const progBar=`<div class="card"><div class="ct">Avancement CA — signé vs projeté</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <div style="flex:1;height:12px;background:var(--bg3);border-radius:6px;overflow:hidden;">
+        <div style="width:${Math.min(tauxReal,100)}%;height:100%;background:var(--pu);border-radius:6px;transition:width .3s;"></div>
+      </div>
+      <div style="font-size:13px;font-weight:600;min-width:40px;">${tauxReal}%</div>
+    </div>
+    <div style="display:flex;gap:16px;font-size:12px;color:var(--text2);">
+      <span style="color:var(--pu);">■ Signé : ${fM(totalSign)}</span>
+      <span style="color:var(--text3);">■ Restant : ${fM(totalProj-totalSign)}</span>
+    </div>
+  </div>`;
+
+  // Clients table
+  const statutBadge=(s)=>{
+    if(s==='signé') return '<span class="badge bs">Signé</span>';
+    if(s==='négociation'||s==='négo') return '<span class="badge bw">Négociation</span>';
+    if(s==='apport') return '<span class="badge bg-b">Apport</span>';
+    return '<span class="badge bg-b">'+s+'</span>';
+  };
+
+  const conseil=clients.filter(c=>c.cat==='Conseil');
+  const mecenat=clients.filter(c=>c.cat==='Mécénat');
+
+  const clientTable=(list,title)=>{
+    if(!list.length) return '';
+    const rows=list.map(c=>{
+      const pct=c.projection?Math.min(Math.round(c.signe/c.projection*100),100):0;
+      return`<tr>
+        <td style="font-weight:500;">${c.client}</td>
+        <td>${statutBadge(c.statut)}</td>
+        <td style="color:var(--text2);">${c.projection?fM(c.projection):'—'}</td>
+        <td style="color:var(--ok);font-weight:500;">${c.signe?fM(c.signe):'—'}</td>
+        <td><div style="display:flex;align-items:center;gap:6px;"><div style="width:60px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${pct>=100?'var(--ok)':pct>=50?'var(--am)':'var(--pi)'};"></div></div><span style="font-size:11px;color:var(--text3);">${pct}%</span></div></td>
+      </tr>`;
+    }).join('');
+    const stot_proj=list.reduce((s,c)=>s+c.projection,0);
+    const stot_sign=list.reduce((s,c)=>s+c.signe,0);
+    return`<div style="margin-bottom:1rem;"><div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;">${title}</div>
+      <table class="tbl"><tr><th>Client</th><th>Statut</th><th>Projection</th><th>Signé</th><th>Avancement</th></tr>${rows}
+      <tr style="background:var(--bg2);font-weight:500;"><td>Total ${title}</td><td>—</td><td>${fM(stot_proj)}</td><td style="color:var(--ok);">${fM(stot_sign)}</td><td><span style="font-size:12px;color:var(--text3);">${stot_proj?Math.round(stot_sign/stot_proj*100):0}%</span></td></tr>
+      </table></div>`;
+  };
+
+  // Compte de résultat
+  const crItems=cr.filter(x=>x.val&&!x.label.includes('Résultat Light')&&!x.label.includes('Delta'));
+  const charges=crItems.filter(x=>!['CA','Marge Brute','Résultat avant impôt','Réssultat net','Résultat net','Dividendes potentiel','Dividendes mensualisés'].includes(x.label));
+  const kpis_cr=crItems.filter(x=>['CA','Marge Brute','Résultat avant impôt','Réssultat net','Dividendes potentiel'].includes(x.label));
+
+  const crTable=`<div class="card"><div class="ct">Compte de résultat simplifié</div>
+    <div class="two-col">
+      <div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">Indicateurs clés</div>
+        ${kpis_cr.map(x=>`<div class="pr-row"><div class="pr-l">${x.label.replace('Réssultat','Résultat')}</div><div style="font-size:13px;font-weight:600;color:${x.label.includes('net')||x.label.includes('Dividende')?'var(--ok)':'var(--text)'};">${fM(x.val)}</div></div>`).join('')}
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">Charges principales</div>
+        ${charges.map(x=>`<div class="pr-row"><div class="pr-l">${x.label}</div><div style="font-size:13px;font-weight:500;color:var(--err);">${fM(x.val)}</div></div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('page-bp').innerHTML=`
+    <div class="hrow"><div><div class="ptitle">Business Plan 2023</div><div class="psub">Suivi CA signé vs projeté · Compte de résultat</div></div></div>
+    ${kpis}${progBar}
+    <div class="card"><div class="ct">Missions par client</div>
+      ${clientTable(conseil,'Activité Conseil')}
+      ${clientTable(mecenat,'Activité Mécénat')}
+    </div>
+    ${crTable}`;
 }
 
 function modal(html){document.getElementById('mr').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeM()"><div class="modal">${html}</div></div>`;}
