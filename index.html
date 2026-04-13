@@ -125,32 +125,33 @@ function save(){
 
 // ── Data loading ───────────────────────────────────────────────────────────
 let PROSP_DATA=[];
-
 function loadData(cb){
   if(dataLoaded){cb();return;}
   let done=0;
-  function check(){if(++done===3){dataLoaded=true;updateCRMBtn();cb();}}
-  const s0=document.createElement('script');
-  s0.src='bp.js';
-  s0.onload=()=>{
+  function check(){if(++done===4){dataLoaded=true;PROSP_DATA=window.PROSP||[];updateCRMBtn();cb();}}
+  // Load bp.js with multi-year support
+  const sbp=document.createElement('script');
+  sbp.src='bp.js';
+  sbp.onload=()=>{
     try{
       const raw=window.BP||{};
       if(raw.years&&raw.current_year){
-        const yr=raw.current_year;
         const keys=Object.keys(raw.years).map(Number).sort();
-        const bestYr=keys.includes(yr)?yr:keys[keys.length-1];
-        const yd=raw.years[bestYr]||{};
-        BP={clients:yd.clients||[],cr:yd.cr||[],totaux:yd.totaux||{},
-            years:raw.years,current_year:bestYr,available_years:raw.available_years||keys};
-      } else {
-        BP={clients:raw.clients||[],cr:raw.cr||[],totaux:raw.totaux||{},
-            years:{},current_year:new Date().getFullYear(),available_years:[]};
+        const yr=keys.includes(raw.current_year)?raw.current_year:keys[keys.length-1];
+        const yd=raw.years[yr]||{};
+        window.BP={clients:yd.clients||[],cr:yd.cr||[],totaux:yd.totaux||{},
+          years:raw.years,current_year:yr,available_years:raw.available_years||keys};
       }
-    }catch(ex){BP={clients:[],cr:[],totaux:{},years:{},current_year:2026,available_years:[]};}
+    }catch(ex){}
     check();
   };
-  s0.onerror=()=>{BP={clients:[],cr:[],totaux:{},years:{},current_year:2026,available_years:[]};check();};
-  document.head.appendChild(s0);
+  sbp.onerror=()=>check();
+  document.head.appendChild(sbp);
+  // Load prosp.js
+  const sp=document.createElement('script');
+  sp.src='prosp.js';sp.onload=()=>check();sp.onerror=()=>check();
+  document.head.appendChild(sp);
+  
   
   const s1=document.createElement('script');
   s1.src='li.js';
@@ -208,8 +209,8 @@ function renderDash(){
   const valSign=signes.reduce((s,d)=>s+(+d.valeur||0),0);
 
   // Pull CA data from Business Plan if available
-  const bpClients=(BP&&BP.clients)||[];
-  const bpSigné=BP.totaux&&BP.totaux.signe||0;
+  const bpClients=(window.BP&&window.BP.clients)||BP.clients||[];
+  const _bp=window.BP||BP||{};const bpSigné=(_bp.totaux&&_bp.totaux.signe)||0;
   const bpProj=BP.totaux&&BP.totaux.projection||0;
   const bpTaux=bpProj?Math.round(bpSigné/bpProj*100):0;
   const bpMissions=bpClients.filter(c=>c.statut==='signé').length;
