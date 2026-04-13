@@ -186,23 +186,93 @@ function renderDash(){
   const deals=S.deals,signes=deals.filter(d=>d.etape==='Signé');
   const valPipe=deals.reduce((s,d)=>s+(+d.valeur||0),0);
   const valSign=signes.reduce((s,d)=>s+(+d.valeur||0),0);
-  const ca=+S.objectifs.quant[0].actuel||0,caObj=+S.objectifs.quant[0].cible||1;
+
+  // Pull CA data from Business Plan if available
+  const bpClients=BP.clients||[];
+  const bpSigné=BP.totaux&&BP.totaux.signe||0;
+  const bpProj=BP.totaux&&BP.totaux.projection||0;
+  const bpTaux=bpProj?Math.round(bpSigné/bpProj*100):0;
+  const bpMissions=bpClients.filter(c=>c.statut==='signé').length;
+  const bpEnNego=bpClients.filter(c=>['négociation','négo'].includes(c.statut)).length;
+  const bpResultatNet=(BP.cr||[]).find(x=>x.label.includes('sultat net'));
+  const hasBP=bpClients.length>0;
+
+  // Sync BP data into objectifs if BP loaded
+  if(hasBP && bpSigné>0){
+    S.objectifs.quant[0].actuel=bpSigné;
+    S.objectifs.quant[0].cible=bpProj;
+    S.objectifs.quant[1].actuel=bpMissions;
+  }
+
+  const ca=bpSigné||+S.objectifs.quant[0].actuel||0;
+  const caObj=bpProj||+S.objectifs.quant[0].cible||1;
   const monthly=Array(12).fill(0);
   signes.forEach(d=>{if(d.date_sig){const m=new Date(d.date_sig).getMonth();if(m>=0&&m<12)monthly[m]+=(+d.valeur||0);}});
   const maxM=Math.max(...monthly,1),cm=new Date().getMonth();
   const bars=MO.map((m,i)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;"><div style="width:100%;border-radius:2px 2px 0 0;background:${i<=cm?'var(--pu)':'var(--bg3)'};opacity:${i<cm?.6:1};height:${Math.max(Math.round(monthly[i]/maxM*60),monthly[i]>0?3:0)}px;min-height:0;"></div><div style="font-size:9px;color:var(--text3);">${m}</div></div>`).join('');
   const pipeR=ET.map(e=>{const it=deals.filter(d=>d.etape===e),v=it.reduce((s,d)=>s+(+d.valeur||0),0);return`<div class="pr-row"><div class="pr-l" style="color:${EC[e]};">${e}</div><div class="pr-bg"><div class="pr-bar" style="width:${deals.length?Math.round(it.length/deals.length*100):0}%;background:${EC[e]};"></div></div><div class="pr-v">${it.length}</div><div style="font-size:11px;color:var(--text3);min-width:52px;text-align:right;">${fM(v)}</div></div>`;}).join('');
-  const objB=S.objectifs.quant.slice(0,4).map(o=>`<div class="pr-row"><div class="pr-l">${o.name}</div><div class="pr-bg"><div class="pr-bar" style="width:${pcB(o.actuel,o.cible)}%;background:var(--pu);"></div></div><div class="pr-v">${pc(o.actuel,o.cible)}%</div></div>`).join('');
+  // Use BP data for objectives if available
+  const objQuant=S.objectifs.quant.map((o,i)=>{
+    if(hasBP && i===0) return {...o,actuel:bpSigné,cible:bpProj};
+    if(hasBP && i===1) return {...o,actuel:bpMissions,cible:bpClients.length};
+    return o;
+  });
+  const objB=objQuant.slice(0,4).map(o=>`<div class="pr-row"><div class="pr-l">${o.name}</div><div class="pr-bg"><div class="pr-bar" style="width:${pcB(o.actuel,o.cible)}%;background:var(--pu);"></div></div><div class="pr-v">${pc(o.actuel,o.cible)}%</div></div>`).join('');
   const top=[...deals].sort((a,b)=>(+b.valeur||0)-(+a.valeur||0)).slice(0,6);
   const topR=top.length?top.map(d=>`<tr><td style="font-weight:500;">${d.prospect||'—'}</td><td>${d.mission||'—'}</td><td>${bE(d.etape)}</td><td style="color:var(--ok);font-weight:500;">${d.valeur?fM(d.valeur):'—'}</td><td style="color:var(--text2);">${d.source||'—'}</td></tr>`).join(''):`<tr><td colspan="5" class="empty">Aucune opportunité — ajoutez-en dans Pipeline</td></tr>`;
   const totalCRM=LI.length+OL.length+S.manual.length;
+
+  // BP summary cards
+  const bpSummary=hasBP?`<div class="card" style="margin-bottom:1rem;border-left:3px solid var(--pu);border-radius:0 var(--rl) var(--rl) 0;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;">
+      <div class="ct" style="margin:0;">Business Plan — avancement global</div>
+      <button class="btn btn-sm" onclick="go('bp',document.querySelectorAll('.nb')[4])">Voir le détail →</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+      <div style="flex:1;height:10px;background:var(--bg3);border-radius:5px;overflow:hidden;">
+        <div style="width:${Math.min(bpTaux,100)}%;height:100%;background:var(--pu);border-radius:5px;"></div>
+      </div>
+      <div style="font-size:14px;font-weight:700;min-width:44px;">${bpTaux}%</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+      <div style="background:var(--bg2);border-radius:var(--r);padding:10px;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">CA projeté</div>
+        <div style="font-size:15px;font-weight:600;">${fM(bpProj)}</div>
+      </div>
+      <div style="background:var(--bg2);border-radius:var(--r);padding:10px;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">CA signé</div>
+        <div style="font-size:15px;font-weight:600;color:var(--ok);">${fM(bpSigné)}</div>
+      </div>
+      <div style="background:var(--bg2);border-radius:var(--r);padding:10px;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">En négociation</div>
+        <div style="font-size:15px;font-weight:600;color:var(--warn);">${bpEnNego} clients</div>
+      </div>
+      <div style="background:var(--bg2);border-radius:var(--r);padding:10px;">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Résultat net</div>
+        <div style="font-size:15px;font-weight:600;color:var(--ok);">${fM(bpResultatNet?bpResultatNet.val:0)}</div>
+      </div>
+    </div>
+    <div style="margin-top:10px;">
+      ${bpClients.slice(0,6).map(c=>{
+        const pct=c.projection?Math.min(Math.round(c.signe/c.projection*100),100):0;
+        const col=c.statut==='signé'?'var(--ok)':['négociation','négo'].includes(c.statut)?'var(--am)':'var(--text3)';
+        return\`<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+          <div style="font-size:12px;min-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">\${c.client}</div>
+          <div style="flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;"><div style="width:\${pct}%;height:100%;background:\${col};"></div></div>
+          <div style="font-size:11px;color:var(--text3);min-width:52px;text-align:right;">\${fM(c.signe)} / \${fM(c.projection)}</div>
+        </div>\`;
+      }).join('')}
+    </div>
+  </div>`:'';
+
   document.getElementById('page-dash').innerHTML=`
     <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-l">CA réalisé</div><div class="kpi-v">${fM(ca)}</div><div class="kpi-d" style="color:${pc(ca,caObj)>=100?'var(--ok)':'var(--text3)'};">${pc(ca,caObj)}% de l'objectif (${fM(caObj)})</div></div>
-      <div class="kpi"><div class="kpi-l">Missions signées</div><div class="kpi-v">${signes.length} / ${S.objectifs.quant[1].cible}</div><div class="kpi-d">${pc(signes.length,S.objectifs.quant[1].cible)}% de l'objectif</div></div>
-      <div class="kpi"><div class="kpi-l">Valeur pipeline</div><div class="kpi-v">${fM(valPipe)}</div><div class="kpi-d">${deals.length} opport. · ${fM(valSign)} signés</div></div>
+      <div class="kpi"><div class="kpi-l">CA signé ${hasBP?'(BP)':''}</div><div class="kpi-v">${fM(ca)}</div><div class="kpi-d" style="color:${pc(ca,caObj)>=100?'var(--ok)':pc(ca,caObj)>=50?'var(--warn)':'var(--text3)'};">${pc(ca,caObj)}% de l'objectif (${fM(caObj)})</div></div>
+      <div class="kpi"><div class="kpi-l">Missions signées ${hasBP?'(BP)':''}</div><div class="kpi-v">${hasBP?bpMissions:signes.length} / ${hasBP?bpClients.length:S.objectifs.quant[1].cible}</div><div class="kpi-d">${hasBP?bpEnNego+' en négociation':pc(signes.length,S.objectifs.quant[1].cible)+'% de l'objectif'}</div></div>
+      <div class="kpi"><div class="kpi-l">Valeur pipeline (CRM)</div><div class="kpi-v">${fM(valPipe)}</div><div class="kpi-d">${deals.length} opport. · ${fM(valSign)} signés</div></div>
       <div class="kpi"><div class="kpi-l">Réseau total</div><div class="kpi-v">${totalCRM.toLocaleString('fr-FR')}</div><div class="kpi-d">${LI.length.toLocaleString('fr-FR')} LinkedIn · ${OL.length.toLocaleString('fr-FR')} Outlook</div></div>
     </div>
+    ${bpSummary}
     <div class="two-col">
       <div class="card"><div class="ct">Objectifs annuels</div>${objB||'<div class="empty">Configurez vos objectifs</div>'}</div>
       <div class="card"><div class="ct">Pipeline par étape</div>${deals.length?pipeR:'<div class="empty">Aucune opportunité</div>'}</div>
